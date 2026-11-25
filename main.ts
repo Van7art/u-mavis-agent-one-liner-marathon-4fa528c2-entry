@@ -44,6 +44,23 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 // The entry: one line, and nothing else.
 const JOKE = "I got kicked out of a silent retreat for thinking too loudly.";
 
+// Single-line guard: the gate counts one line, so any newline character
+// makes the entry invalid — fail loudly here instead of shipping it.
+if (JOKE.includes("\n") || JOKE.includes("\r")) {
+  throw new Error(
+    `invalid entry ${JSON.stringify(JOKE)}: entry must be a single line (no newline characters)`,
+  );
+}
+
+// ASCII byte-equality check: the gate counts ASCII bytes, so the
+// character count must equal the UTF-8 byte length — any non-ASCII
+// character would break the count.
+if (JOKE.length !== Buffer.byteLength(JOKE, "utf8")) {
+  throw new Error(
+    `invalid entry ${JSON.stringify(JOKE)}: entry must be ASCII only (character count ${JOKE.length} != UTF-8 byte length ${Buffer.byteLength(JOKE, "utf8")})`,
+  );
+}
+
 // Validate the entry before writing anything: exactly one line, 1 to
 // 280 characters, not only white space, no trailing newline. Anything
 // else fails loudly instead of shipping an invalid entry.
